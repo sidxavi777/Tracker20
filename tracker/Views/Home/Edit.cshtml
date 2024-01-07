@@ -1,0 +1,135 @@
+﻿@using Models.ViewModel
+@using Utilities
+@model TableColumnsVM
+
+<form asp-controller="Home" asp-action="Edit" method="post">
+    <input asp-for="TrackerIndividual.TableColumnsId" hidden />
+    <input asp-for="TrackerIndividual.CreatedOn" hidden />
+    <input asp-for="TrackerIndividual.CreatedBy" hidden />
+    @* <input asp-for="TrackerIndividual.AssignedTo" hidden /> *@
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h3 class="text-center mb-4">Create a new Ticket</h3>
+
+                <div class="form-container bg-white p-4">
+                    <div asp-route-id="@Model.TrackerIndividual" class="text-right">
+                        <i onclick="Del(@Model.TrackerIndividual.TableColumnsId)" class="bi bi-trash"></i>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.TicketNumber">Ticket Number</label>
+                        <input asp-for="TrackerIndividual.TicketNumber" class="form-control" />
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.TicketNumber"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.Description">Description</label>
+                        <textarea asp-for="TrackerIndividual.Description" class="form-control"></textarea>
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.Description"></span>
+                    </div>
+
+                 
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.AssignedTo">Assigned to</label>
+                        @Html.DropDownListFor(
+                                 model => model.TrackerIndividual.AssignedTo,
+                                 Model.userNames,
+                                 "Select a name",
+                                 new { @class = "form-control" }
+                                 )
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.AssignedTo"></span>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.Status">Status</label>
+                        @Html.DropDownListFor(model => model.TrackerIndividual.Status, Html.GetEnumSelectList<Status>(), "Select status", new { @class = "form-control", })
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.Status"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.Eta">ETA</label>
+                        @if (Model.TrackerIndividual.Eta != null)
+                        {
+
+                            @foreach (var item in Model.TrackerIndividual.Eta)
+                            {
+                                if (item != null)
+                                {
+                                    <input asp-for="@Model.TrackerIndividual.Eta" disabled class="form-control" value="@item.ToString()" />
+                                    <input asp-for="@Model.TrackerIndividual.Eta" hidden class="form-control" value="@item.ToString()" />
+                                }
+                            }
+                        }
+
+                        <input asp-for="TrackerIndividual.NewEta" type="date" class="form-control" />
+                        
+
+                        
+                    </div>
+
+              
+
+                 
+
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.Type">Type</label>
+                        <input asp-for="TrackerIndividual.Type" class="form-control" />
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.Type"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="TrackerIndividual.Application">Application</label>
+                        <input asp-for="TrackerIndividual.Application" class="form-control" />
+                        <span class="text-danger" asp-validation-for="TrackerIndividual.Application"></span>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" asp-action="Edit"  class="btn  btn-lg"><p>Edit<i class="bi bi-emoji-smile"></i></p> </button>
+                    </div>
+                   
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
+</form>
+
+<script defer>
+    function Del(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Make the AJAX request to delete the item
+                $.ajax({
+                    url: '/Home/Delete/' + id,
+                    type: 'DELETE',
+                    success: function () {
+                        toastr.success("Ticket Deleted successfully")
+                        window.location.href = '/Home/Index';// true forces a hard reload without using the cache
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        // Handle the error, show a message, or log it
+                        console.error('Error deleting item:', errorThrown);
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+
+@section Scripts {
+    @{
+                <partial name="_ValidationScriptsPartial.cshtml" />
+    }
+
+}

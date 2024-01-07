@@ -1,0 +1,150 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div class="container-fluid">
+	<div class="row">
+		<!-- Left Portion: Overall Status -->
+		<div class="col-md-4">
+			<p class="text-center">Overall Status</p>
+
+			<div class="chart-container border rounded p-3 shadow">
+				<canvas id="overallChart"></canvas>
+			</div>
+
+		</div>
+
+		<div class="col-md-4">
+			<p class="text-center">Weekly Status</p>
+
+			<div class="chart-container border rounded p-3 shadow">
+				<canvas id="weeklyChart"></canvas>
+			</div>
+
+		</div>
+
+		<div class="col-md-4">
+			<p class="text-center">Monthly Status</p>
+
+			<div class="chart-container border rounded p-3 shadow">
+				<canvas id="monthlyChart"></canvas>
+			</div>
+
+		</div>
+
+		<!-- Right Portion -->
+
+	</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+	console.log("1");
+	$(document).ready(function () {
+		$.ajax({
+			type: "POST",
+			url: "/Home/ChartData",
+			data: "",
+			contentType: "application/json",
+			dataType: "json",
+			success: function (data) {
+
+
+				const overallChart = document.getElementById("overallChart");
+				const weekly = document.getElementById("weeklyChart");
+				const monthly = document.getElementById("monthlyChart");
+
+
+				var _overall = data[2];
+				var _labelsOverall = _overall.labels;
+				var _ChartDataOverall = _overall.data;
+
+				var _week = data[0];
+				var _labelsWeek = _week.labels;
+				var _ChartdataWeek = _week.data;
+
+				var _month = data[1];
+				var _labelsMonth = _month.labels;
+				var _ChartdataMonth = _month.data;
+
+				var colours = [
+					"rgba(255, 99, 132, 0.7)",
+					"rgba(54, 162, 235, 0.7)",
+					"rgba(255, 206, 86, 0.7)",
+					"rgba(75, 192, 192, 0.7)"
+				];
+
+
+				new Chart(overallChart, {
+
+					type: 'doughnut',
+					data: {
+						labels: _labelsOverall,
+						datasets: [{
+							backgroundColor: colours,
+							data: _ChartDataOverall,
+							options: {
+								responsive: true,
+								maintainAspectRatio: false,
+								plugins: {
+									legend: {
+										labels: {
+											// This more specific font property overrides the global property
+											font: {
+												family: "'Montserrat'",
+												size: 14
+											}
+										}
+									}
+								}
+
+							}
+					
+
+
+						}]
+					},
+				});
+
+				new Chart(weekly, {
+
+					type: 'doughnut',
+					data: {
+						labels: _labelsWeek,
+						datasets: [{
+							backgroundColor: colours,
+							data: _ChartdataWeek,
+							options: {
+								mantainAspectratio: false
+							}
+
+						}]
+					},
+				});
+
+				new Chart(monthly, {
+
+					type: 'doughnut',
+					data: {
+						labels: _labelsMonth,
+						datasets: [{
+							backgroundColor: colours,
+							data: _ChartdataMonth,
+							options: {
+								mantainAspectratio: false
+							}
+
+						}]
+					},
+				});
+
+
+			}
+		});
+	});
+
+
+</script>

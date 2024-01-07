@@ -1,0 +1,490 @@
+﻿@using Humanizer
+@using Models.ViewModel
+@using Utilities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+
+@model TableColumnsVM
+
+@{
+	ApplicationUser user = await UserManager.GetUserAsync(User);
+	string Name = user?.Name;
+}
+<section class="ftco-section">
+	<form asp-controller="Home" asp-action="Index" method="post">
+		<div class="container">
+			@if (TempData["IsNull"] == SD.NoData)
+			{
+				<p>No data to be shown</p>
+			}
+			else{
+			<div class="row">
+				<div class="col-md-3">
+					<div class="col-sm-9 d-flex ">
+						@Html.DropDownListFor(model => model.filterByName, Model.userNames, "Select All", new { @class = "form-control", id = "filterByNameDropdown" })
+						<button asp-controller="Home" asp-action="Index" id="filterButton" class="btn btn-outline-dark btn-block btn-sm ml-2">Filter</button>
+					</div>
+					<div class="col-sm-12 mt-2">
+						<input asp-for="@Model.IsChecked" />
+						<label>Exclude Closed</label>
+					</div>
+					<div class="col-sm-6 mt-2">
+					</div>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-md-12">
+
+					<div class="table-wrap">
+						<table class="table myaccordion table-hover" id="accordion">
+							<thead>
+								<tr>
+									<th class="table-size">#</th>
+									<th class="table-size">Number</th>
+									<th class="table-size">Description</th>
+									<th class="table-size">Assigned To</th>
+									<th class="table-size">Status</th>
+									<th class="table-size">ETA</th>
+									<th class="table-size">Comments</th>
+									<th class="table-size">Created On</th>
+									<th class="table-size">Created By</th>
+									<th class="table-size">Type</th>
+									<th class="table-size">Application</th>
+									<th class="table-size">Completed Date</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var item in Model.Tracker)
+								{
+									
+							
+									<tr >
+										<input asp-for="@item.TableColumnsId" hidden />
+										<td class="table-sizes" scope="row">@item.RowCount</td>
+										<td class="table-sizes">@item.TicketNumber</td>
+										<td class="table-sizes">@item.Description</td>
+										<td class="table-sizes">@item.AssignedTo</td>
+										<td class="table-sizes">
+												<div>
+													@Html.DropDownListFor(modelItem => item.Status, Html.GetEnumSelectList<Status>(), new
+														{
+															@class = "form-control",
+															style = "width: 110px;",
+															id = $"statusDropdown_{item.TableColumnsId}",
+															onchange = "handleDropdownChange(" + item.TableColumnsId + ", this.value)"
+														})
+
+
+													<span class="text-danger" asp-validation-for="@item.Status"></span>
+												</div>
+
+
+									
+										</td>
+										<td class="table-sizes">
+											<p>
+												@if (item.Eta != null)
+												{
+													@foreach (var eta in item.Eta)
+													{
+														@eta
+														@if (item.Eta.IndexOf(eta) != item.Eta.Count - 1 && item.Eta!=null)
+														{
+															<span><i class="bi bi-calendar-x"></i>&nbsp &nbsp</span>
+														}
+													}
+												}
+											</p>
+										</td>
+
+
+										<td class="table-sizes ">
+											<div>
+											<a >
+												<i id="btn-changer-custom-@item.TableColumnsId" class="bi bi bi-chat-left btn-changer-custom" style="color:green; padding: 10px; display:inline" onclick="toggleDiv('@item.TableColumnsId')"></i>
+											</a>
+											<a  asp-controller="Home" asp-action="Edit" asp-route-id="@item.TableColumnsId">
+												<i class="bi bi-pencil"></i>
+											</a>
+												</div>
+										</td>
+
+
+
+										<td class="table-sizes">@item.CreatedOn</td>
+										<td class="table-sizes">@item.CreatedBy</td>
+										<td class="table-sizes">@item.Type</td>
+										<td class="table-sizes">@item.Application</td>
+										<td class="table-sizes-@item.TableColumnsId">@item.CompletedDate</td>
+									</tr>
+									<tr>
+										<td colspan="12" id="collapseOne-@item.TableColumnsId" data-parent="#accordion" class="collapse">
+
+
+											<div>
+												<!-- Plus icon that toggles the input field -->
+												<i class="bi bi-plus-lg" id="toggleIcon_@item.TableColumnsId" onclick="toggleInputField('@item.TableColumnsId')" style="cursor: pointer;">New comment</i><br>
+
+												<!-- Input field and Save button -->
+												<div id="commentInput_@item.TableColumnsId" style="display: none; margin-top: 10px;">
+													<div class="input-group">
+														<textarea id="commentDescription_@item.TableColumnsId" placeholder="Your comment..." class="form-control" style="max-width: 300px; resize: vertical;"></textarea>
+													</div>
+													<button type="button" onclick="saveComment('@item.TableColumnsId')" class="btn btn-dark btn-sm mt-2 mb-3">Post</button>
+												</div>
+
+
+
+
+
+
+												<!-- Display comments -->
+												@if (item.CommentOfaTicket != null && item.CommentOfaTicket.Any())
+												{
+
+														<div class="comments-of-ticket_@item.TableColumnsId col-12">
+															@foreach (var comment in item.CommentOfaTicket.OrderByDescending(u => u.Time))
+															{
+																<div class="media border p-3 mb-3 ticket-@item.TableColumnsId">
+																	<div class="media-body d-flex flex-column text-wrap overflow-auto">
+																		<p class="mt-0"><b>@comment.Name</b> <small class="text-muted">@comment.Time.Humanize(false)</small></p>
+
+																		<!-- Hidden input initially -->
+																		<input type="text" class="form-control mb-1 @comment.Id-input" value="@comment.Description" style="display: none;">
+
+																		<!-- Visible <p> element initially -->
+																		<p class="mb-1 @comment.Id-p">@comment.Description</p>
+																		
+
+																			@if (comment.Name == Name){
+																			
+																		<small class="text-muted" style="color: black"><a href="#" onclick="editComment('@comment.Id','@item.TableColumnsId')">
+																			Edit | </a>
+																		<a href="#" onclick="saveEditedComment('@comment.Id','@item.TableColumnsId')">Save | </a>
+																		<a href="#" onclick="deleteComment('@comment.Id','@item.TableColumnsId')">Delete</a></small>
+																		}
+																	</div>
+																</div>
+															}
+														</div>
+												}
+												
+											
+
+											</div>
+										
+
+											
+										
+										</td> 
+
+										
+</tr>
+								}
+							</tbody>
+						</table>
+							@* <div class="d-flex justify-content-center mt-4">
+								<nav aria-label="Page navigation example">
+									<ul class="pagination">
+										@if (Model.Tracker.HasPerviousPage)
+										{
+											<li class="page-item">
+												<a class="page-link" href="?pageIndex=@(Model.Tracker.PageIndex - 1)" aria-label="Previous">
+													<span aria-hidden="true">&laquo;</span>
+												</a>
+											</li>
+										}
+
+										@for (int i = 1; i <= Model.Tracker.Totalpage; i++)
+										{
+											<li class="page-item @(i == Model.Tracker.PageIndex ? "active" : "")">
+												<a class="page-link" href="?pageIndex=@i">@i</a>
+											</li>
+										}
+
+										@if (Model.Tracker.HasNextPage)
+										{
+											<li class="page-item">
+												<a class="page-link" href="?pageIndex=@(Model.Tracker.PageIndex + 1)" aria-label="Next">
+													<span aria-hidden="true">&raquo;</span>
+												</a>
+											</li>
+										}
+									</ul>
+								</nav>
+							</div> *@
+					
+							@{
+								var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+								var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+							}
+							@if(prevDisabled=="disabled"){
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" disabled class="btn-dark">Previous</button>
+							}
+							@if (prevDisabled == "")
+							{
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" class="btn-dark">Previous</button>
+							}
+							@if (nextDisabled == "disabled")
+							{
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" disabled class="btn-dark">Next</button>
+							}
+							@if (nextDisabled == "")
+							{
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" class="btn-dark">Next</button>
+							}
+						
+							
+						</div>
+					</div>
+				</div>
+				
+			
+			}
+		</div>
+	</form>
+</section>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js">
+	
+
+
+
+</script>
+ <script>
+	
+	function handleDropdownChange(statusId, status) {
+		console.log(statusId);
+		console.log(status);
+		
+			// Make an AJAX request to update the status
+			$.ajax({
+				type: "POST",
+				url: "/Home/UpdateStatus", // Replace with your controller and action
+				data: {
+				Sid: statusId,
+				S: status
+				},
+				success: function (data) {
+					// Handle success if needed
+					
+					
+				var row = document.querySelector('.table-sizes-' + data.id);
+					row.innerHTML = data.date;
+				toastr.success("Status updated successfully")
+
+		
+
+				},
+				error: function (error) {
+					// Handle error if needed
+				toastr.error("Something went wrong");
+				}
+			});
+		
+	}
+</script>
+
+
+
+	<script>
+		function editComment(id) {
+			$(".mb-1." + id + "-p").hide();
+			$(".mb-1." + id + "-input").show();
+		}
+
+	function saveEditedComment(id, ticketId) {
+		console.log("came");
+		var newDescription = $(".mb-1." + id + "-input").val();
+		var ip = {
+			id: id,
+			ticketId: ticketId,
+			newDescription: newDescription
+		};
+
+		console.log(id + ticketId + newDescription);
+		
+
+		$.ajax({
+			type: "POST",
+			url: "Home/CommentEdit",
+			dataType: "json",
+			data: ip,
+			success: function (data) {
+				console.log("new dec:" +data.newDescription);
+
+				// Hide the input and show the paragraph
+				$(".mb-1." + id + "-input").hide();
+
+				// Use getElementsByClassName to get the element(s)
+				var rows = document.getElementsByClassName('mb-1 ' + id + '-p');
+
+				// Log the number of elements found
+				console.log('Number of elements found:', rows.length);
+
+				// Assuming there is only one element with the specified class, you can access it like this:
+				var row = rows[0];
+
+			
+				// Check if the element is found before updating the content
+				if (row) {
+					row.innerHTML = data.desc;
+				
+				} 
+
+
+				$(".mb-1." + id + "-p").show();
+				toastr.success('Comment edited successfully')
+			},
+			error: function (error) {
+				toastr.error('Something went wrong')
+			}
+		});
+	}
+
+	function deleteComment(id, ticketId) {
+		console.log(id + " " + ticketId);
+		var confirmation = confirm("Are you sure you want to delete this comment?");
+		if (confirmation) {
+			$.ajax({
+				type: "DELETE",
+				url: "Home/DeleteComment",
+				dataType: "json",
+				data: { id: id, tId: ticketId },
+				success: function (data) {
+					console.log(data.message);
+					console.log(data.ticketId);
+					;
+					var element = document.querySelector('.ticket-' + data.ticketId);
+					console.log(element);
+					if (element) {
+						element.remove();
+						toastr.success('Comment deleted successfully');
+					} else {
+						toastr.error('Comment element not found');
+					}
+				},
+				error: function (error) {
+					toastr.error('Something went wrong');
+				}
+			});
+		}
+	}
+
+
+
+</script>
+	
+
+
+<script>
+	function toggleDiv(rowCount) {
+		// Close all other collapsible rows
+		var allCollapses = document.querySelectorAll('[id^="collapseOne-"]');
+		allCollapses.forEach(function (collapse) {
+			if (collapse.id !== 'collapseOne-' + rowCount) {
+				$(`#${collapse.id}`).collapse('hide'); // Hide other collapsible rows
+			}
+		});
+
+		// Toggle the selected collapsible row
+		$(`#collapseOne-${rowCount}`).collapse('toggle');
+	}
+
+	
+</script>
+
+
+
+
+
+<script>
+	$(document).ready(function () {
+		$("#filterButton").click(function () {
+			var selectedValue = $("#filterByNameDropdown").val();
+			$(this).attr("asp-route-ids", selectedValue);
+
+			// Get the HTML content of the div based on the selected value
+			var divHtml = $("#" + selectedValue).prop("outerHTML");
+			console.log("Div content:", divHtml);
+		});
+	});
+
+		function filter() {
+			var dropdown = document.getElementById("filterByNameDropdown");
+			var selection = dropdown.options[dropdown.selectedIndex].text;
+			console.log('Selected: ' + selection);
+
+			var myButton = document.getElementById("filterButton");
+			console.log(myButton);
+		}
+</script>
+
+
+<script>
+	@* toggleDiv save button *@
+	function toggleInputField(tableColumnsId) {
+		var commentInput = document.getElementById('commentInput_' + tableColumnsId);
+
+		if (commentInput.style.display === 'none' || commentInput.style.display === '') {
+			commentInput.style.display = 'block';
+		} else {
+			commentInput.style.display = 'none';
+		}
+	}
+	
+
+</script>
+
+@* 
+<script>
+	function saveComment(id) {
+		var ticketNum = id;
+		var input = $('#commentDescription_' + id).val();
+		var ip = {
+			commentAjax: input,
+			TicketNumAjax: ticketNum
+		};
+
+		$.ajax({
+			;
+			type: "POST",
+			url: "Home/Comment", // Replace with your actual controller name
+			dataType: "json",
+			data: ip,
+			success: function (res) {
+				;
+				var newRow = '<div class="media border p-3 mb-3 ticket-' + res.ticketId + '">' +
+					'<div class="media-body d-flex flex-column text-wrap overflow-auto">' +
+					'<p class="mt-0"><b>' + res.name + '</b> <small class="text-muted">' + res.time + '</small></p>' +
+					'<p class="mb-1">' + res.desc + '</p>' +
+					'<small class="text-muted" style="color: black">' +
+					'<a href="#" onclick="editComment(' + res.cId + ', ' + res.id + ')">Edit | </a>' +
+					'<a href="#" onclick="saveEditedComment(' + res.cId + ', ' + res.id + ')">Save | </a>' +
+					'<a href="#" onclick="deleteComment(' + res.cId + ', ' + res.id + ')">Delete</a>' +
+					'</small>' +
+					'</div>' +
+					'</div>';
+
+
+				
+				// Append the new comment to the corresponding ticket comments section
+				$('.comments-of-ticket_' + res.id).append(newRow);
+				toastr.success('Comment added successfully');
+				$('#commentDescription_' + res.id).val("");
+
+				
+
+			},
+			error: function (req, status, error) {
+				
+				console.log(status);
+				toastr.error("Something went wrong")
+			}
+		});
+	}
+
+</script> *@
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>

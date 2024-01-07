@@ -1,0 +1,74 @@
+﻿@model Models.ViewModel.TableColumnsVM;
+@using Utilities;
+
+<form asp-controller="Home" asp-action="Create">
+	@*    <input asp-for="@Model.TrackerIndividual.CreatedBy" hidden/> *@
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<h3 class="text-center mb-4">Create a new Ticket</h3>
+
+				<div class="form-container bg-white p-4">
+					<div class="form-group">
+						<label asp-for="@Model.TrackerIndividual.TicketNumber">Ticket Number</label>
+						<input asp-for="@Model.TrackerIndividual.TicketNumber" class="form-control" />
+						<span class="text-danger" asp-validation-for="@Model.TrackerIndividual.TicketNumber"></span>
+					</div>
+
+					<div class="form-group">
+						<label asp-for="@Model.TrackerIndividual.Description">Description</label>
+						<textarea asp-for="@Model.TrackerIndividual.Description" class="form-control"></textarea>
+						<span class="text-danger" asp-validation-for="@Model.TrackerIndividual.Description"></span>
+					</div>
+
+
+					<div class="form-group">
+						@Html.LabelFor(model => model.TrackerIndividual.AssignedTo)
+						@Html.DropDownListFor(model => model.TrackerIndividual.AssignedTo, Model.userNames, "-- Select User --", new { @class = "form-control" })
+						<span class="text-danger" asp-validation-for="@Model.TrackerIndividual.AssignedTo"></span>
+					</div>
+
+					<div class="form-group">
+						@Html.LabelFor(model => model.TrackerIndividual.Status)
+						@Html.DropDownListFor(model => model.TrackerIndividual.Status, Html.GetEnumSelectList<Status>(), new { @class = "form-control" })
+						<span class="text-danger" asp-validation-for="@Model.TrackerIndividual.Status"></span>
+					</div>
+					<span class="text-danger" asp-validation-for="TrackerIndividual.Status"></span>
+				
+
+				<div class="form-group">
+					<label asp-for="TrackerIndividual.NewEta">ETA</label>
+					<input type="date" asp-for="TrackerIndividual.NewEta" class="form-control" />
+					<span class="text-danger" asp-validation-for="TrackerIndividual.NewEta"></span>
+				</div>
+
+
+
+				<div class="form-group">
+					<label asp-for="TrackerIndividual.Type">Type</label>
+					<input asp-for="TrackerIndividual.Type" class="form-control" />
+					<span class="text-danger" asp-validation-for="TrackerIndividual.Type"></span>
+				</div>
+
+				<div class="form-group">
+					<label asp-for="TrackerIndividual.Application">Application</label>
+					<input asp-for="TrackerIndividual.Application" class="form-control" />
+					<span class="text-danger" asp-validation-for="TrackerIndividual.Application"></span>
+				</div>
+
+				<div class="text-center mt-4">
+					<button type="submit" class="btn  btn-lg"><p>Create   <i class="bi bi-emoji-smile"></i></p> </button>
+				</div>
+
+			</div>
+			</div>
+
+		</div>
+	</div>
+	</div>
+</form>
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial.cshtml" />
+	}
+}

@@ -1,0 +1,44 @@
+﻿@model List<ApplicationUser>;
+
+@{
+    ViewData["Title"] = "User List";
+}
+
+<h1>User List</h1>
+
+<form asp-controller="Home" asp-action="manage" method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Email</th>
+                <th>Authorised</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@Model[i].Email</td>
+                    <td>
+                        <input type="hidden" name="selectedUsers[@i].Id" value="@Model[i].Id" />
+                        <input type="hidden" name="selectedUsers[@i].Email" value="@Model[i].Email" />
+                        <input type="checkbox" name="selectedUsers[@i].isAuthorized" value="true" @(Model[i].isAuthorized ? "checked" : "") />
+                     
+                    </td>
+
+            <td>
+                    <input type="checkbox" name="selectedUsers[@i].Roles" value="Admin" @(Model[i].Roles.Contains("Admin") ? "checked" : "") />
+            </td>
+                    
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit">Process Selected Users</button>
+</form>
+
