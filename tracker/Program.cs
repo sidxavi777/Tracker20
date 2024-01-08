@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Models;
+using tracker;
 using tracker.Areas.Identity.Pages.Account;
 using Utilities;
 

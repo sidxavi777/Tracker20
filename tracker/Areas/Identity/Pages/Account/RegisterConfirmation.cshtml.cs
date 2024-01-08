@@ -72,45 +72,48 @@ namespace tracker.Areas.Identity.Pages.Account
 
             Email = email;
             // Once you add a real email sender, you should remove this code that lets you confirm the account
-            DisplayConfirmAccountLink = true;
-            var _smtp = _serviceProvider.GetRequiredService<SMTP>();
-            if (DisplayConfirmAccountLink)
-            {
-                var userId = await _userManager.GetUserIdAsync(user);
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                EmailConfirmationUrl = Url.Page(
-                    "/Account/ConfirmEmail",
-                    pageHandler: null,
-                    values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                    protocol: Request.Scheme);
-                _smtp.To = email;
-                _smtp.Body = "please click the link to confirm your account: " + EmailConfirmationUrl;
-                _smtp.Subject = "Tracker Account confirmation";
+            //DisplayConfirmAccountLink = true;
+            //var _smtp = _serviceProvider.GetRequiredService<SMTP>();
+            //if (DisplayConfirmAccountLink)
+            //{
+            //    var userId = await _userManager.GetUserIdAsync(user);
+            //    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            //    EmailConfirmationUrl = Url.Page(
+            //        "/Account/ConfirmEmail",
+            //        pageHandler: null,
+            //        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+            //        protocol: Request.Scheme);
 
-                MailMessage mail = new MailMessage
-                {
-                    Subject = _smtp.Subject,
-                    Body = _smtp.Body,
-                    From = new MailAddress(_smtp.SenderAddress, _smtp.SenderDisplayName),
-                    IsBodyHtml = _smtp.IsBodyHTML
 
-                };
-                mail.To.Add(_smtp.To);
 
-                NetworkCredential credential = new NetworkCredential(_smtp.UserName, _smtp.Password);
+            //    _smtp.To = email;
+            //    _smtp.Body = "please click the link to confirm your account: " + EmailConfirmationUrl;
+            //    _smtp.Subject = "Tracker Account confirmation";
 
-                SmtpClient client = new SmtpClient
-                {
-                    Host=_smtp.Host,
-                    Port = _smtp.Port,
-                    EnableSsl=_smtp.EnableSSL,
-                    UseDefaultCredentials=_smtp.UseDefaultCredentials,
-                    Credentials= credential
-                };
-                mail.BodyEncoding= Encoding.Default;
-                await client.SendMailAsync(mail);
-            }
+            //    MailMessage mail = new MailMessage
+            //    {
+            //        Subject = _smtp.Subject,
+            //        Body = _smtp.Body,
+            //        From = new MailAddress(_smtp.SenderAddress, _smtp.SenderDisplayName),
+            //        IsBodyHtml = _smtp.IsBodyHTML
+
+            //    };
+            //    mail.To.Add(_smtp.To);
+
+            //    NetworkCredential credential = new NetworkCredential(_smtp.UserName, _smtp.Password);
+
+            //    SmtpClient client = new SmtpClient
+            //    {
+            //        Host=_smtp.Host,
+            //        Port = _smtp.Port,
+            //        EnableSsl=_smtp.EnableSSL,
+            //        UseDefaultCredentials=_smtp.UseDefaultCredentials,
+            //        Credentials= credential
+            //    };
+            //    mail.BodyEncoding= Encoding.Default;
+            //    await client.SendMailAsync(mail);
+            //}
             DisplayConfirmAccountLink = false;
             return Page();
         }
