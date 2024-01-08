@@ -32,6 +32,12 @@
 					<div class="col-sm-6 mt-2">
 					</div>
 				</div>
+					<div class="col-md-9 text-right">
+						
+						<a class="nav-link text-dark" asp-controller="Home" asp-action="Create" role="button">
+							Create <i class="bi bi-plus-circle-fill"></i>
+						</a>
+					</div>
 			</div>
 			
 			<div class="row">
@@ -221,19 +227,22 @@
 								var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 							}
 							@if(prevDisabled=="disabled"){
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" disabled class="btn-dark">Previous</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" style="cursor: not-allowed; opacity: 0.5;" disabled class="btn-dark">
+									&lt;
+								</button>
+
 							}
 							@if (prevDisabled == "")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" class="btn-dark">Previous</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" class="btn-dark">&lt;</button>
 							}
 							@if (nextDisabled == "disabled")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" disabled class="btn-dark">Next</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" style="cursor: not-allowed; opacity: 0.5;" disabled class="btn-dark ">></button>
 							}
 							@if (nextDisabled == "")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" class="btn-dark">Next</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" class="btn-dark">></button>
 							}
 						
 							

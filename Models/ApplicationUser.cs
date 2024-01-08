@@ -15,7 +15,7 @@ namespace Models
 	{
 		[Required]
 		public string Name { get; set; }
-		public bool isAuthorized { get; set; } = false;
+		public bool isAuthorized { get; set; }
 		[NotMapped]
 		public List<string> Roles { get; set; }
 	}

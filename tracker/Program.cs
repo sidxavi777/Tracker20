@@ -56,7 +56,6 @@ builder.Services.Configure<SMTP>(builder.Configuration.GetSection("SMTPConfig"))
 //DI
 builder.Services.AddScoped<ITracker, Tracker>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
 builder.Services.AddSingleton<SMTP>(builder.Configuration.GetSection("SMTPConfig").Get<SMTP>());
 
 
@@ -80,5 +79,4 @@ app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-//app.UseMiddleware<MemberAuthorizationMiddleware>();
 app.Run();

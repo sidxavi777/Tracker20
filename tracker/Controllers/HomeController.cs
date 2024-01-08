@@ -28,8 +28,8 @@ using System.Drawing.Printing;
 namespace tracker.Controllers
 {
     [Authorize]
-
-    public class HomeController : Controller
+	
+	public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ITracker _tracker;
@@ -44,8 +44,16 @@ namespace tracker.Controllers
             _userManager = userManager;
         }
 
+		public async Task<bool> IsAllowedToView()
+		{
+			// Get the current user
+			var user = await _userManager.GetUserAsync(User);
 
-        public List<SelectListItem> GetAuthorizedUsers()
+			return user != null && user.isAuthorized;
+		}
+
+
+		public List<SelectListItem> GetAuthorizedUsers()
         {
             var authorizedUserNames = _userManager.Users
                 .Where(u => u.isAuthorized)
@@ -59,51 +67,58 @@ namespace tracker.Controllers
 		{
 			try
 			{
-				int count = 0;
-				List<TableColumnsVm> tables;
+                if (await IsAllowedToView())
+                {
+                    int count = 0;
+                    List<TableColumnsVm> tables;
 
-				var ticket = _db.Tracker.Include(u => u.CommentOfaTicket).ToList();
+                    var ticket = _db.Tracker.Include(u => u.CommentOfaTicket).ToList();
 
-				if (filter?.filterByName != null && filter.IsChecked == false)
-				{
-					tables = (await _tracker.GetAllAsync(u => u.AssignedTo == filter.filterByName)).ToList();
-				}
-				else if (filter?.filterByName != null && filter.IsChecked == true)
-				{
-					tables = (await _tracker.GetAllAsync(u => u.AssignedTo == filter.filterByName && u.Status != Status.Closed)).ToList();
-				}
-				else if (filter?.IsChecked == true && filter.filterByName == null)
-				{
-					tables = (await _tracker.GetAllAsync(u => u.Status != Status.Closed)).ToList();
-				}
-				else
-				{
-					tables = (await _tracker.GetAllAsync()).ToList();
-				}
+                    if (filter?.filterByName != null && filter.IsChecked == false)
+                    {
+                        tables = (await _tracker.GetAllAsync(u => u.AssignedTo == filter.filterByName)).ToList();
+                    }
+                    else if (filter?.filterByName != null && filter.IsChecked == true)
+                    {
+                        tables = (await _tracker.GetAllAsync(u => u.AssignedTo == filter.filterByName && u.Status != Status.Closed)).ToList();
+                    }
+                    else if (filter?.IsChecked == true && filter.filterByName == null)
+                    {
+                        tables = (await _tracker.GetAllAsync(u => u.Status != Status.Closed)).ToList();
+                    }
+                    else
+                    {
+                        tables = (await _tracker.GetAllAsync()).ToList();
+                    }
 
-				tables.ForEach(item => item.RowCount = ++count);
+                    tables.ForEach(item => item.RowCount = ++count);
 
-                // Paginate the list
-                int pageSize = 15;
-				var paginatedList = PaginatedList<TableColumnsVm>.Create(tables, Page ?? 1, pageSize);
+                    // Paginate the list
+                    int pageSize = 15;
+                    var paginatedList = PaginatedList<TableColumnsVm>.Create(tables, Page ?? 1, pageSize);
 
-				var listOfColumn = new TableColumnsVM
-				{
-					Tracker = paginatedList,
-					filterByName = null,
-					userNames = GetAuthorizedUsers().Select(u => new SelectListItem
-					{
-						Text = u.Text,
-						Value = u.Value
-					}).ToList(),
-					HasPreviousPage = paginatedList.HasPerviousPage,
-					HasNextPage = paginatedList.HasNextPage,
-					PageIndex = paginatedList.PageIndex,
-					TotalPages = paginatedList.Totalpage
+                    var listOfColumn = new TableColumnsVM
+                    {
+                        Tracker = paginatedList,
+                        filterByName = null,
+                        userNames = GetAuthorizedUsers().Select(u => new SelectListItem
+                        {
+                            Text = u.Text,
+                            Value = u.Value
+                        }).ToList(),
+                        HasPreviousPage = paginatedList.HasPerviousPage,
+                        HasNextPage = paginatedList.HasNextPage,
+                        PageIndex = paginatedList.PageIndex,
+                        TotalPages = paginatedList.Totalpage
 
-				};
+                    };
 
-				return View(listOfColumn);
+                    return View(listOfColumn);
+                }
+                else
+                {
+                    return View("UnAuth");
+                }
 			}
 			catch (Exception ex)
 			{
@@ -115,20 +130,28 @@ namespace tracker.Controllers
 
 		public async Task<IActionResult> Create()
         {
+
             try
             {
-                var listOfColumn = new TableColumnsVM
+                if (await IsAllowedToView())
                 {
-                    TrackerIndividual = new TableColumnsVm(),
-                    filterByName = null,
-                    userNames = GetAuthorizedUsers().Select(u => new SelectListItem
+                    var listOfColumn = new TableColumnsVM
                     {
-                        Text = u.Text,
-                        Value = u.Value
-                    }).ToList(),
-                };
+                        TrackerIndividual = new TableColumnsVm(),
+                        filterByName = null,
+                        userNames = GetAuthorizedUsers().Select(u => new SelectListItem
+                        {
+                            Text = u.Text,
+                            Value = u.Value
+                        }).ToList(),
+                    };
 
-                return View(listOfColumn);
+                    return View(listOfColumn);
+                }
+                else
+                {
+                    return View("UnAuth");
+                }
             }
             catch (Exception ex)
             {
@@ -142,27 +165,34 @@ namespace tracker.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
+                if (await IsAllowedToView())
+                {
+                    var user = await _userManager.GetUserAsync(User);
 
-                ColumnNames.TrackerIndividual.CreatedBy = user.Name;
-                ColumnNames.TrackerIndividual.CreatedOn = DateOnly.FromDateTime(DateTime.Now);
-                if (ColumnNames.TrackerIndividual.NewEta != null)
-                {
-                    var eta = new List<DateOnly?>();
-                    eta.Add(ColumnNames.TrackerIndividual.NewEta);
-                    ColumnNames.TrackerIndividual.Eta = eta;
+                    ColumnNames.TrackerIndividual.CreatedBy = user.Name;
+                    ColumnNames.TrackerIndividual.CreatedOn = DateOnly.FromDateTime(DateTime.Now);
+                    if (ColumnNames.TrackerIndividual.NewEta != null)
+                    {
+                        var eta = new List<DateOnly?>();
+                        eta.Add(ColumnNames.TrackerIndividual.NewEta);
+                        ColumnNames.TrackerIndividual.Eta = eta;
+                    }
+                    if (ModelState.IsValid)
+                    {
+                        await _tracker.AddAsync(ColumnNames.TrackerIndividual);
+                        await _tracker.SaveAsync();
+                        TempData["success"] = "Ticket created successfully";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Input data is not valid";
+                    }
                 }
-                if (ModelState.IsValid)
-                {
-                    await _tracker.AddAsync(ColumnNames.TrackerIndividual);
-                    await _tracker.SaveAsync();
-                    TempData["success"] = "Ticket created successfully";
-                }
-                else
-                {
-                    TempData["success"] = "Input data is not valid";
-                }
-            }
+				else
+				{
+					return View("UnAuth");
+				}
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred in Create action.");
@@ -173,24 +203,34 @@ namespace tracker.Controllers
         }
         public async Task<IActionResult> Edit(int? id)
         {
+
             try
             {
-                if (id == null)
+                if (await IsAllowedToView())
                 {
-                    return View("Error");
-                }
-                var listOfColumn = new TableColumnsVM
-                {
-                    TrackerIndividual = await _tracker.GetAsync(u => u.TableColumnsId == id),
-                    filterByName = null,
-                    userNames = GetAuthorizedUsers().Select(u => new SelectListItem
+                    if (id == null)
                     {
-                        Text = u.Text,
-                        Value = u.Value
-                    }).ToList(),
-                };
-                return View(listOfColumn);
-            }
+                        return View("Error");
+                    }
+                    var listOfColumn = new TableColumnsVM
+                    {
+                        TrackerIndividual = await _tracker.GetAsync(u => u.TableColumnsId == id),
+                        filterByName = null,
+                        userNames = GetAuthorizedUsers().Select(u => new SelectListItem
+                        {
+                            Text = u.Text,
+                            Value = u.Value
+                        }).ToList(),
+                    };
+                    return View(listOfColumn);
+                }
+				else
+				{
+					return View("UnAuth");
+				}
+			}
+
+			
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred in Edit action.");
@@ -203,29 +243,36 @@ namespace tracker.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
+                if (await IsAllowedToView())
                 {
-                    if (columns.TrackerIndividual.Status.ToString() == SD.StatusCompleted)
+                    if (ModelState.IsValid)
                     {
-                        columns.TrackerIndividual.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
-                    }
-                    if (columns.TrackerIndividual.Eta == null)
-                    {
-                        columns.TrackerIndividual.Eta = new List<DateOnly?>();
-                    }
-                    if (columns.TrackerIndividual.NewEta != null)
-                    {
-                        columns.TrackerIndividual.Eta.Add(columns.TrackerIndividual.NewEta);
+                        if (columns.TrackerIndividual.Status.ToString() == SD.StatusCompleted)
+                        {
+                            columns.TrackerIndividual.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
+                        }
+                        if (columns.TrackerIndividual.Eta == null)
+                        {
+                            columns.TrackerIndividual.Eta = new List<DateOnly?>();
+                        }
+                        if (columns.TrackerIndividual.NewEta != null)
+                        {
+                            columns.TrackerIndividual.Eta.Add(columns.TrackerIndividual.NewEta);
 
+                        }
+                        await _tracker.UpdateAsync(columns.TrackerIndividual);
+                        await _tracker.SaveAsync();
+                        TempData["success"] = "Updated successfully";
+                        return RedirectToAction("Index", "Home");
                     }
-                    await _tracker.UpdateAsync(columns.TrackerIndividual);
-                    await _tracker.SaveAsync();
-                    TempData["success"] = "Updated successfully";
-                    return RedirectToAction("Index", "Home");
+
+                    return View("Error");
                 }
-
-                return View("Error");
-            }
+				else
+				{
+					return View("UnAuth");
+				}
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred in Edit action.");
@@ -249,20 +296,27 @@ namespace tracker.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                Comment data = new Comment
+                if (await IsAllowedToView())
                 {
-                    Name = user.Name,
-                    Description = commentAjax,
-                    Time = DateTime.Now,
-                    TicketNumber = TicketNumAjax
-                };
-                _db.comment.Add(data);
-                await _db.SaveChangesAsync();
-                int newCommentId = data.Id;
-                var displayName = user.Name;
-                var timeHumanised = DateTime.Now.Humanize();
-                return Ok(new { id = data.TicketNumber, name = displayName, desc = data.Description, time = timeHumanised, cId = newCommentId, tId = TicketNumAjax });
+                    var user = await _userManager.GetUserAsync(User);
+                    Comment data = new Comment
+                    {
+                        Name = user.Name,
+                        Description = commentAjax,
+                        Time = DateTime.Now,
+                        TicketNumber = TicketNumAjax
+                    };
+                    _db.comment.Add(data);
+                    await _db.SaveChangesAsync();
+                    int newCommentId = data.Id;
+                    var displayName = user.Name;
+                    var timeHumanised = DateTime.Now.Humanize();
+                    return Ok(new { id = data.TicketNumber, name = displayName, desc = data.Description, time = timeHumanised, cId = newCommentId, tId = TicketNumAjax });
+                }
+                else
+                {
+					return View("UnAuth");
+				}
             }
             catch (Exception ex)
             {
@@ -274,19 +328,26 @@ namespace tracker.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int Sid, int S)
         {
-            var ticket = await _tracker.GetAsync(u => u.TableColumnsId == Sid);
-            Status status = (Status)S;
-            ticket.Status = status;
-            if (ticket.Status.ToString() == "Closed")
+            if (await IsAllowedToView())
             {
-                ticket.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
+                var ticket = await _tracker.GetAsync(u => u.TableColumnsId == Sid);
+                Status status = (Status)S;
+                ticket.Status = status;
+                if (ticket.Status.ToString() == "Closed")
+                {
+                    ticket.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
+                }
+                else
+                {
+                    ticket.CompletedDate = null;
+                }
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, date = ticket.CompletedDate.ToString(), id = Sid });
             }
             else
             {
-                ticket.CompletedDate = null;
-            }
-            await _db.SaveChangesAsync();
-            return Json(new { success = true, date = ticket.CompletedDate.ToString(), id = Sid });
+				return View("UnAuth");
+			}
         }
 
         [Authorize(Roles = SD.Admin)]
@@ -294,22 +355,28 @@ namespace tracker.Controllers
         {
             try
             {
-
-                var allUsersInfo = await _userManager.Users
+                if (await IsAllowedToView())
+                {
+                    var allUsersInfo = await _userManager.Users
                 .Select(user => new ApplicationUser { Id = user.Id, Email = user.Email, isAuthorized = user.isAuthorized })
                 .ToListAsync();
 
-                foreach (var x in allUsersInfo)
-                {
-                    var user = await _userManager.FindByIdAsync(x.Id);
-
-                    if (user != null)
+                    foreach (var x in allUsersInfo)
                     {
-                        // Explicitly convert IList<string> to List<string>
-                        x.Roles = (await _userManager.GetRolesAsync(user)).ToList();
+                        var user = await _userManager.FindByIdAsync(x.Id);
+
+                        if (user != null)
+                        {
+                            // Explicitly convert IList<string> to List<string>
+                            x.Roles = (await _userManager.GetRolesAsync(user)).ToList();
+                        }
                     }
+                    return View(allUsersInfo);
                 }
-                return View(allUsersInfo);
+                else
+                {
+					return View("UnAuth");
+				}
             }
             catch (Exception ex)
             {
@@ -320,15 +387,22 @@ namespace tracker.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
-            var row = await _tracker.GetAsync(u => u.TableColumnsId == id);
-            if (row != null)
+            if (await IsAllowedToView())
             {
-                _tracker.Delete(row);
-                await _tracker.SaveAsync();
+                var row = await _tracker.GetAsync(u => u.TableColumnsId == id);
+                if (row != null)
+                {
+                    _tracker.Delete(row);
+                    await _tracker.SaveAsync();
 
-                return Json(new { success = true });
+                    return Json(new { success = true });
+                }
+                return NotFound();
             }
-            return NotFound();
+            else
+            {
+				return View("UnAuth");
+			}
         }
 
 
@@ -338,30 +412,37 @@ namespace tracker.Controllers
         {
             try
             {
-                foreach (var user in selectedUsers)
+                if (await IsAllowedToView())
                 {
-                    var existingUser = await _userManager.FindByIdAsync(user.Id);
-                    if (existingUser != null)
+                    foreach (var user in selectedUsers)
                     {
-                        existingUser.isAuthorized = user.isAuthorized;
-
-                        var existingRoles = await _userManager.GetRolesAsync(existingUser);
-                        await _userManager.RemoveFromRolesAsync(existingUser, existingRoles.ToArray());
-
-                        if (user.Roles != null && user.Roles.Contains("Admin"))
+                        var existingUser = await _userManager.FindByIdAsync(user.Id);
+                        if (existingUser != null)
                         {
-                            await _userManager.AddToRoleAsync(existingUser, "Admin");
-                        }
-                        else
-                        {
-                            await _userManager.AddToRoleAsync(existingUser, "Member");
-                        }
+                            existingUser.isAuthorized = user.isAuthorized;
 
-                        await _userManager.UpdateAsync(existingUser);
+                            var existingRoles = await _userManager.GetRolesAsync(existingUser);
+                            await _userManager.RemoveFromRolesAsync(existingUser, existingRoles.ToArray());
+
+                            if (user.Roles != null && user.Roles.Contains("Admin"))
+                            {
+                                await _userManager.AddToRoleAsync(existingUser, "Admin");
+                            }
+                            else
+                            {
+                                await _userManager.AddToRoleAsync(existingUser, "Member");
+                            }
+
+                            await _userManager.UpdateAsync(existingUser);
+                        }
                     }
+                    return RedirectToAction("Index");
                 }
-                return RedirectToAction("Index");
-            }
+				else
+				{
+					return View("UnAuth");
+				}
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred in Manage action.");
@@ -372,130 +453,161 @@ namespace tracker.Controllers
         [Authorize(Roles = SD.Admin)]
         public async Task<IActionResult> Chart()
         {
-            return View();
+            if (await IsAllowedToView())
+            {
+                return View();
+            }
+            else
+            {
+				return View("UnAuth");
+			}
         }
 
         [HttpPost]
 
         public async Task<IActionResult> CommentEdit(int id, int ticketId, string newDescription)
         {
-            var ticketWithSpecificComment = _db.Tracker
+            if (await IsAllowedToView())
+            {
+                var ticketWithSpecificComment = _db.Tracker
                 .Include(u => u.CommentOfaTicket)
                 .FirstOrDefault(t => t.TableColumnsId == ticketId);
 
-            if (ticketWithSpecificComment != null)
-            {
-                var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
 
-                if (specificComment != null)
+
+                if (ticketWithSpecificComment != null)
                 {
-                    specificComment.Description = newDescription;
-                    await _db.SaveChangesAsync();
-                    return Json(new { success = true, message = "Comment updated successfully", id = specificComment.Id, desc = specificComment.Description.ToString(), ticketId = ticketId });
+                    var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
+
+                    if (specificComment != null)
+                    {
+                        specificComment.Description = newDescription;
+                        await _db.SaveChangesAsync();
+                        return Json(new { success = true, message = "Comment updated successfully", id = specificComment.Id, desc = specificComment.Description.ToString(), ticketId = ticketId });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Comment not found for the given ticket" });
+                    }
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Comment not found for the given ticket" });
+                    return Json(new { success = false, message = "Ticket not found" });
                 }
             }
             else
             {
-                return Json(new { success = false, message = "Ticket not found" });
-            }
+				return View("UnAuth");
+			}
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteComment(int id, int tId)
         {
-            var ticketWithSpecificComment = _db.Tracker
+            if (await IsAllowedToView())
+            {
+                var ticketWithSpecificComment = _db.Tracker
                 .Include(u => u.CommentOfaTicket)
                 .FirstOrDefault(t => t.TableColumnsId == tId);
 
-            if (ticketWithSpecificComment != null)
-            {
-                var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
-
-                if (specificComment != null)
+                if (ticketWithSpecificComment != null)
                 {
-                    _db.comment.Remove(specificComment);
-                    _db.SaveChangesAsync();
+                    var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
+
+                    if (specificComment != null)
+                    {
+                        _db.comment.Remove(specificComment);
+                        _db.SaveChangesAsync();
+                    }
+                    return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
                 }
-                return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
+                else
+                {
+                    return Json(new { success = false, message = "Comment not found for the given ticket" });
+                }
+
             }
-            else
-            {
-                return Json(new { success = false, message = "Comment not found for the given ticket" });
-            }
-        }
+			else
+			{
+				return View("UnAuth");
+			}
+		}
 
 
         [Authorize(Roles = SD.Admin)]
         [HttpPost]
         public async Task<IActionResult> ChartData()
         {
-            List<TableColumnsVm> AllTickets = ((List<TableColumnsVm>)await _tracker.GetAllAsync()).ToList();
+            if (await IsAllowedToView())
+            {
+                List<TableColumnsVm> AllTickets = ((List<TableColumnsVm>)await _tracker.GetAllAsync()).ToList();
 
-            var inProgress = AllTickets.Where(t => t.Status.ToString() == Enum.GetName(typeof(Status), Status.InProgress)).ToList();
-            var onHolded = AllTickets.Where(t => t.Status.ToString() == Enum.GetName(typeof(Status), Status.Hold)).ToList();
+                var inProgress = AllTickets.Where(t => t.Status.ToString() == Enum.GetName(typeof(Status), Status.InProgress)).ToList();
+                var onHolded = AllTickets.Where(t => t.Status.ToString() == Enum.GetName(typeof(Status), Status.Hold)).ToList();
 
-            var createdPastWeek = AllTickets
-            .Where(t => t.CreatedOn >= DateOnly.FromDateTime(DateTime.Now.AddDays(-7)))
-            .ToList();
-
-
-            var createdPastMonth = AllTickets
-                .Where(t => t.CreatedOn >= DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)))
+                var createdPastWeek = AllTickets
+                .Where(t => t.CreatedOn >= DateOnly.FromDateTime(DateTime.Now.AddDays(-7)))
                 .ToList();
 
-            var closedPastWeek = AllTickets
-                .Where(t => t.CompletedDate >= DateOnly.FromDateTime(DateTime.Now.AddDays(-7)))
-                .ToList();
 
-            var closedPastMonth = AllTickets
-                .Where(t => t.CompletedDate >= DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)))
-                .ToList();
+                var createdPastMonth = AllTickets
+                    .Where(t => t.CreatedOn >= DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)))
+                    .ToList();
 
-            var overallClosed = AllTickets
-               .Where(t => t.Status.ToString() == SD.StatusCompleted)
-               .ToList();
+                var closedPastWeek = AllTickets
+                    .Where(t => t.CompletedDate >= DateOnly.FromDateTime(DateTime.Now.AddDays(-7)))
+                    .ToList();
 
-            var overallNew = AllTickets
-               .Where(t => t.Status.ToString() == SD.StatusNew)
-               .ToList();
+                var closedPastMonth = AllTickets
+                    .Where(t => t.CompletedDate >= DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)))
+                    .ToList();
 
-            Chart counts = new Chart
+                var overallClosed = AllTickets
+                   .Where(t => t.Status.ToString() == SD.StatusCompleted)
+                   .ToList();
+
+                var overallNew = AllTickets
+                   .Where(t => t.Status.ToString() == SD.StatusNew)
+                   .ToList();
+
+                Chart counts = new Chart
+                {
+                    InProgres = inProgress.Count(),
+                    onHold = onHolded.Count(),
+                    createdPastWeek = createdPastWeek.Count(),
+                    createdPastMonth = createdPastMonth.Count(),
+                    closedPastWeek = closedPastWeek.Count(),
+                    closedPastMonth = closedPastMonth.Count(),
+                    overallClosedCount = overallClosed.Count(),
+                    overAllNew = overallNew.Count()
+
+                };
+                ChartDataResponseVM week = new ChartDataResponseVM
+                {
+                    Data = new int[2] { counts.createdPastWeek, counts.closedPastWeek },
+                    Labels = new string[2] { "Created " + counts.createdPastWeek, "Closed " + counts.closedPastWeek }
+                };
+                ChartDataResponseVM month = new ChartDataResponseVM
+                {
+                    Data = new int[2] { counts.createdPastMonth, counts.closedPastMonth },
+                    Labels = new string[2] { "Created " + counts.createdPastMonth, "Closed " + counts.closedPastMonth }
+                };
+                ChartDataResponseVM overAll = new ChartDataResponseVM
+                {
+                    Data = new int[4] { counts.InProgres, counts.onHold, counts.overallClosedCount, counts.overAllNew },
+                    Labels = new string[4] { "In progress " + counts.InProgres, "on hold " + counts.onHold, "Closed " + counts.overallClosedCount, "New " + counts.overAllNew }
+                };
+
+                List<ChartDataResponseVM> output = new List<ChartDataResponseVM>();
+                output.Add(week);
+                output.Add(month);
+                output.Add(overAll);
+                return Ok(output);
+            }
+            else
             {
-                InProgres = inProgress.Count(),
-                onHold = onHolded.Count(),
-                createdPastWeek = createdPastWeek.Count(),
-                createdPastMonth = createdPastMonth.Count(),
-                closedPastWeek = closedPastWeek.Count(),
-                closedPastMonth = closedPastMonth.Count(),
-                overallClosedCount = overallClosed.Count(),
-                overAllNew = overallNew.Count()
-
-            };
-            ChartDataResponseVM week = new ChartDataResponseVM
-            {
-                Data = new int[2] { counts.createdPastWeek, counts.closedPastWeek },
-                Labels = new string[2] { "Created " + counts.createdPastWeek, "Closed " + counts.closedPastWeek }
-            };
-            ChartDataResponseVM month = new ChartDataResponseVM
-            {
-                Data = new int[2] { counts.createdPastMonth, counts.closedPastMonth },
-                Labels = new string[2] { "Created " + counts.createdPastMonth, "Closed " + counts.closedPastMonth }
-            };
-            ChartDataResponseVM overAll = new ChartDataResponseVM
-            {
-                Data = new int[4] { counts.InProgres, counts.onHold, counts.overallClosedCount, counts.overAllNew },
-                Labels = new string[4] { "In progress " + counts.InProgres, "on hold " + counts.onHold, "Closed " + counts.overallClosedCount, "New " + counts.overAllNew }
-            };
-
-            List<ChartDataResponseVM> output = new List<ChartDataResponseVM>();
-            output.Add(week);
-            output.Add(month);
-            output.Add(overAll);
-            return Ok(output);
+					return View("UnAuth");
+			}
 
         }
     }
