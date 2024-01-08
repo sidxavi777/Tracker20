@@ -153,7 +153,7 @@
 														<div class="comments-of-ticket_@item.TableColumnsId col-12" style="max-width: 1800px; overflow-x: hidden;">
 															@foreach (var comment in item.CommentOfaTicket.OrderByDescending(u => u.Time))
 															{
-																<div class="media border p-3 mb-3 ticket-@item.TableColumnsId">
+																<div class="media border p-3 mb-3 ticket-@comment.Id">
 																	<div class="media-body d-flex flex-column text-wrap overflow-auto">
 																		<p class="mt-0"><b>@comment.Name</b> <small class="text-muted">@comment.Time.Humanize(false)</small></p>
 
@@ -370,7 +370,7 @@
 					console.log(data.message);
 					console.log(data.ticketId);
 					;
-					var element = document.querySelector('.ticket-' + data.ticketId);
+					var element = document.querySelector('.ticket-' + data.cId);
 					console.log(element);
 					if (element) {
 						element.remove();

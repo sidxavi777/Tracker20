@@ -517,9 +517,10 @@ namespace tracker.Controllers
                     if (specificComment != null)
                     {
                         _db.comment.Remove(specificComment);
-                        _db.SaveChangesAsync();
-                    }
-                    return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
+						await _db.SaveChangesAsync();
+
+					}
+					return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
                 }
                 else
                 {

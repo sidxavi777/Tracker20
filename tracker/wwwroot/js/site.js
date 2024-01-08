@@ -55,7 +55,7 @@ function saveComment(id) {
         data: ip,
         success: function (res) {
             // Create a new comment element
-            var newRow = '<div class="media border p-3 mb-3 ticket-' + res.tId + '">' +
+            var newRow = '<div class="media border p-3 mb-3 ticket-' + res.cId + '">' +
                 '<div class="media-body d-flex flex-column text-wrap overflow-auto">' +
                 '<p class="mt-0"><b>' + res.name + '</b> <small class="text-muted">' + res.time + '</small></p>' +
                 '<p class="mb-1 ' + res.cId + '-p">' + res.desc + '</p>' +
