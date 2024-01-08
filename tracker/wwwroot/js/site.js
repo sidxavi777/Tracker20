@@ -61,9 +61,9 @@ function saveComment(id) {
                 '<p class="mb-1 ' + res.cId + '-p">' + res.desc + '</p>' +
                 '<input type="text" class="form-control mb-1 ' + res.cId + '-input" value="' + res.desc + '" style="display: none;">' +
                 '<small class="text-muted" style="color: black">' +
-                '<a href="#" onclick="editComment(\'' + res.cId + '\', \'' + res.id + '\')">Edit | </a>' +
-                '<a href="#" onclick="saveEditedComment(\'' + res.cId + '\', \'' + res.id + '\')">Save | </a>' +
-                '<a href="#" onclick="deleteComment(\'' + res.cId + '\', \'' + res.id + '\')">Delete</a>' +
+                '<a href="#" style="color: black" onclick="editComment(\'' + res.cId + '\', \'' + res.id + '\')">Edit | </a>' +
+                '<a href="#" style="color: black" onclick="saveEditedComment(\'' + res.cId + '\', \'' + res.id + '\')">Save | </a>' +
+                '<a href="#" style="color: black" onclick="deleteComment(\'' + res.cId + '\', \'' + res.id + '\')">Delete</a>' +
                 '</small>' +
                 '</div>' +
                 '</div>';

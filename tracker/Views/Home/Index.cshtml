@@ -150,7 +150,7 @@
 												@if (item.CommentOfaTicket != null && item.CommentOfaTicket.Any())
 												{
 
-														<div class="comments-of-ticket_@item.TableColumnsId col-12">
+														<div class="comments-of-ticket_@item.TableColumnsId col-12" style="max-width: 1800px; overflow-x: hidden;">
 															@foreach (var comment in item.CommentOfaTicket.OrderByDescending(u => u.Time))
 															{
 																<div class="media border p-3 mb-3 ticket-@item.TableColumnsId">
@@ -161,22 +161,27 @@
 																		<input type="text" class="form-control mb-1 @comment.Id-input" value="@comment.Description" style="display: none;">
 
 																		<!-- Visible <p> element initially -->
-																		<p class="mb-1 @comment.Id-p">@comment.Description</p>
-																		
+																		<p class="mb-1 @comment.Id-p" style="overflow-wrap: break-word; word-wrap: break-word;">@comment.Description</p>
 
-																			@if (comment.Name == Name){
-																			
-																		<small class="text-muted" style="color: black"><a href="#" onclick="editComment('@comment.Id','@item.TableColumnsId')">
-																			Edit | </a>
-																		<a href="#" onclick="saveEditedComment('@comment.Id','@item.TableColumnsId')">Save | </a>
-																		<a href="#" onclick="deleteComment('@comment.Id','@item.TableColumnsId')">Delete</a></small>
+																		@if (comment.Name == Name)
+																		{
+																			<small class="text-muted">
+																				<a href="#" style="color: black" onclick="editComment('@comment.Id','@item.TableColumnsId')">Edit | </a>
+																				<a href="#" style="color: black" onclick="saveEditedComment('@comment.Id','@item.TableColumnsId')">Save | </a>
+																				<a href="#" style="color: black" onclick="deleteComment('@comment.Id','@item.TableColumnsId')">Delete</a>
+																			</small>
 																		}
 																	</div>
 																</div>
 															}
 														</div>
-												}
-												
+
+													}
+													else
+													{
+														<div class="comments-of-ticket_@item.TableColumnsId col-12"></div>
+													}
+
 											
 
 											</div>
