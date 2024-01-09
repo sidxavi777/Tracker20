@@ -59,20 +59,21 @@ namespace tracker.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+            public string Name { get; set; }
         }
 
-        private async Task LoadAsync(ApplicationUser user)
-        {
-            var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+        //private async Task LoadAsync(ApplicationUser user)
+        //{
+        //    var userName = await _userManager.GetUserNameAsync(user);
+        //    //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            Username = userName;
+        //    Username = userName;
 
-            Input = new InputModel
-            {
-                PhoneNumber = phoneNumber
-            };
-        }
+        //    //Input = new InputModel
+        //    //{
+        //    //    PhoneNumber = phoneNumber
+        //    //};
+        //}
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -82,7 +83,11 @@ namespace tracker.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            await LoadAsync(user);
+            Input = new InputModel
+            {
+                Name = user.Name
+            };
+
             return Page();
         }
 
@@ -96,20 +101,12 @@ namespace tracker.Areas.Identity.Pages.Account.Manage
 
             if (!ModelState.IsValid)
             {
-                await LoadAsync(user);
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
-            {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
-                {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
-                    return RedirectToPage();
-                }
-            }
+            user.Name = Input.Name;
+
+            await _userManager.UpdateAsync(user); // Update the user's information
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
@@ -117,3 +114,4 @@ namespace tracker.Areas.Identity.Pages.Account.Manage
         }
     }
 }
+

@@ -32,6 +32,12 @@
 					<div class="col-sm-6 mt-2">
 					</div>
 				</div>
+					<div class="col-md-9 text-right">
+						
+						<a class="nav-link text-dark" asp-controller="Home" asp-action="Create" role="button">
+							Create <i class="bi bi-plus-circle-fill"></i>
+						</a>
+					</div>
 			</div>
 			
 			<div class="row">
@@ -64,7 +70,11 @@
 										<input asp-for="@item.TableColumnsId" hidden />
 										<td class="table-sizes" scope="row">@item.RowCount</td>
 										<td class="table-sizes">@item.TicketNumber</td>
-										<td class="table-sizes">@item.Description</td>
+											<td class="table-sizes">
+												<div class="truncate-text" data-toggle="tooltip" data-placement="top" title="@item.Description">
+													@Html.Raw(item.Description.Length > 30 ? $"{item.Description.Substring(0, 30)}" : item.Description)
+												</div>
+											</td>
 										<td class="table-sizes">@item.AssignedTo</td>
 										<td class="table-sizes">
 												<div>
@@ -84,19 +94,23 @@
 									
 										</td>
 										<td class="table-sizes">
-											<p>
+											
 												@if (item.Eta != null)
 												{
 													@foreach (var eta in item.Eta)
 													{
-														@eta
-														@if (item.Eta.IndexOf(eta) != item.Eta.Count - 1 && item.Eta!=null)
-														{
-															<span><i class="bi bi-calendar-x"></i>&nbsp &nbsp</span>
-														}
+														<p class="mb-0">
+															@eta
+
+															@if (item.Eta.IndexOf(eta) != item.Eta.Count - 1 && item.Eta != null)
+															{
+																<span class="ml-2"><i class="bi bi-calendar-x"></i></span>
+															}
+														</p>
 													}
+
 												}
-											</p>
+											
 										</td>
 
 
@@ -105,7 +119,7 @@
 											<a >
 												<i id="btn-changer-custom-@item.TableColumnsId" class="bi bi bi-chat-left btn-changer-custom" style="color:green; padding: 10px; display:inline" onclick="toggleDiv('@item.TableColumnsId')"></i>
 											</a>
-											<a  asp-controller="Home" asp-action="Edit" asp-route-id="@item.TableColumnsId">
+													<a  asp-controller="Home" asp-action="Edit" asp-route-id="@item.TableColumnsId">
 												<i class="bi bi-pencil"></i>
 											</a>
 												</div>
@@ -126,7 +140,7 @@
 											<div>
 												<!-- Plus icon that toggles the input field -->
 												<i class="bi bi-plus-lg" id="toggleIcon_@item.TableColumnsId" onclick="toggleInputField('@item.TableColumnsId')" style="cursor: pointer;">New comment</i><br>
-
+												<br />
 												<!-- Input field and Save button -->
 												<div id="commentInput_@item.TableColumnsId" style="display: none; margin-top: 10px;">
 													<div class="input-group">
@@ -144,10 +158,10 @@
 												@if (item.CommentOfaTicket != null && item.CommentOfaTicket.Any())
 												{
 
-														<div class="comments-of-ticket_@item.TableColumnsId col-12">
+														<div class="comments-of-ticket_@item.TableColumnsId col-12" style="max-width: 1800px; overflow-x: hidden;">
 															@foreach (var comment in item.CommentOfaTicket.OrderByDescending(u => u.Time))
 															{
-																<div class="media border p-3 mb-3 ticket-@item.TableColumnsId">
+																<div class="media border p-3 mb-3 ticket-@comment.Id">
 																	<div class="media-body d-flex flex-column text-wrap overflow-auto">
 																		<p class="mt-0"><b>@comment.Name</b> <small class="text-muted">@comment.Time.Humanize(false)</small></p>
 
@@ -155,22 +169,27 @@
 																		<input type="text" class="form-control mb-1 @comment.Id-input" value="@comment.Description" style="display: none;">
 
 																		<!-- Visible <p> element initially -->
-																		<p class="mb-1 @comment.Id-p">@comment.Description</p>
-																		
+																		<p class="mb-1 @comment.Id-p" style="overflow-wrap: break-word; word-wrap: break-word;">@comment.Description</p>
 
-																			@if (comment.Name == Name){
-																			
-																		<small class="text-muted" style="color: black"><a href="#" onclick="editComment('@comment.Id','@item.TableColumnsId')">
-																			Edit | </a>
-																		<a href="#" onclick="saveEditedComment('@comment.Id','@item.TableColumnsId')">Save | </a>
-																		<a href="#" onclick="deleteComment('@comment.Id','@item.TableColumnsId')">Delete</a></small>
+																		@if (comment.Name == Name)
+																		{
+																			<small class="text-muted">
+																				<a href="#" style="color: black" onclick="editComment('@comment.Id','@item.TableColumnsId')">Edit | </a>
+																				<a href="#" style="color: black" onclick="saveEditedComment('@comment.Id','@item.TableColumnsId')">Save | </a>
+																				<a href="#" style="color: black" onclick="deleteComment('@comment.Id','@item.TableColumnsId')">Delete</a>
+																			</small>
 																		}
 																	</div>
 																</div>
 															}
 														</div>
-												}
-												
+
+													}
+													else
+													{
+														<div class="comments-of-ticket_@item.TableColumnsId col-12"></div>
+													}
+
 											
 
 											</div>
@@ -221,19 +240,22 @@
 								var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 							}
 							@if(prevDisabled=="disabled"){
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" disabled class="btn-dark">Previous</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" style="cursor: not-allowed; opacity: 0.5;" disabled class="btn-dark">
+									&lt;
+								</button>
+
 							}
 							@if (prevDisabled == "")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" class="btn-dark">Previous</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex-1)" class="btn-dark">&lt;</button>
 							}
 							@if (nextDisabled == "disabled")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" disabled class="btn-dark">Next</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" style="cursor: not-allowed; opacity: 0.5;" disabled class="btn-dark ">></button>
 							}
 							@if (nextDisabled == "")
 							{
-								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" class="btn-dark">Next</button>
+								<button asp-action="Index" asp-route-Page="@(Model.PageIndex+1)" class="btn-dark">></button>
 							}
 						
 							
@@ -356,7 +378,7 @@
 					console.log(data.message);
 					console.log(data.ticketId);
 					;
-					var element = document.querySelector('.ticket-' + data.ticketId);
+					var element = document.querySelector('.ticket-' + data.cId);
 					console.log(element);
 					if (element) {
 						element.remove();
@@ -437,6 +459,24 @@
 
 </script>
 
+@* <script>
+	document.addEventListener("DOMContentLoaded", function () {
+		var descriptions = document.querySelectorAll('.truncate-text');
+
+		descriptions.forEach(function (description) {
+			description.addEventListener('mouseover', function () {
+				this.style.whiteSpace = 'normal';
+				this.style.overflow = 'visible';
+			});
+
+			description.addEventListener('mouseout', function () {
+				this.style.whiteSpace = 'nowrap';
+				this.style.overflow = 'hidden';
+			});
+		});
+	});
+</script>
+ *@
 @* 
 <script>
 	function saveComment(id) {

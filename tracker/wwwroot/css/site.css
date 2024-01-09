@@ -129,6 +129,12 @@ p {
     margin-top: 0;
     margin-bottom: 1rem;
 }
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Adjust as needed */
+}
 
 abbr[title],
 abbr[data-original-title] {
@@ -11744,7 +11750,7 @@ a {
     -webkit-transition: .3s all ease;
     -o-transition: .3s all ease;
     transition: .3s all ease;
-    color: #1089ff;
+    
 }
 
     a:hover,
@@ -11820,7 +11826,18 @@ h5,
         transition: none;
     }
 }
+@media (min-width: 576px) {
+    .table {
+        min-width: 1000px !important;
+    }
+}
 
+/* Additional styles for smaller screens, if needed */
+@media (max-width: 575px) {
+    .table {
+        min-width: 0 !important;
+    }
+}
 .table thead th {
     border: none;
     
@@ -11838,6 +11855,15 @@ h5,
     -webkit-transition: 0.3s;
     -o-transition: 0.3s;
     transition: 0.3s;
+}
+
+.nav-item {
+    margin-bottom: 10px; /* Adjust the space between buttons */
+}
+
+.nav-link.active {
+    background-color: white !important;
+    color: black !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
