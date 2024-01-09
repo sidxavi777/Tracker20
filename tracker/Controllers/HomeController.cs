@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using System.Drawing.Printing;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace tracker.Controllers
 {
@@ -145,7 +146,7 @@ namespace tracker.Controllers
                             Value = u.Value
                         }).ToList(),
                     };
-
+                    listOfColumn.TrackerIndividual.TicketNumber = "CAPS-";
                     return View(listOfColumn);
                 }
                 else
@@ -280,10 +281,10 @@ namespace tracker.Controllers
                 return View("Error");
             }
         }
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        //public IActionResult Privacy()
+        //{
+        //    return View();
+        //}
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
@@ -358,7 +359,7 @@ namespace tracker.Controllers
                 if (await IsAllowedToView())
                 {
                     var allUsersInfo = await _userManager.Users
-                .Select(user => new ApplicationUser { Id = user.Id, Email = user.Email, isAuthorized = user.isAuthorized })
+                .Select(user => new ApplicationUser { Id = user.Id, Name = user.Name, isAuthorized = user.isAuthorized })
                 .ToListAsync();
 
                     foreach (var x in allUsersInfo)
@@ -472,24 +473,27 @@ namespace tracker.Controllers
                 var ticketWithSpecificComment = _db.Tracker
                 .Include(u => u.CommentOfaTicket)
                 .FirstOrDefault(t => t.TableColumnsId == ticketId);
+                var loggedInUser = await _userManager.FindByNameAsync(User.Identity.Name);
+                var loggedInUserName = loggedInUser.Name;
 
 
-
-                if (ticketWithSpecificComment != null)
+                if (ticketWithSpecificComment != null && loggedInUser != null)
                 {
-                    var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
+                        var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
 
-                    if (specificComment != null)
-                    {
-                        specificComment.Description = newDescription;
-                        await _db.SaveChangesAsync();
-                        return Json(new { success = true, message = "Comment updated successfully", id = specificComment.Id, desc = specificComment.Description.ToString(), ticketId = ticketId });
+                        if (specificComment != null && loggedInUserName == specificComment.Name)
+                        {
+
+                            specificComment.Description = newDescription;
+                            await _db.SaveChangesAsync();
+                            return Json(new { success = true, message = "Comment updated successfully", id = specificComment.Id, desc = specificComment.Description.ToString(), ticketId = ticketId });
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "Comment not found for the given ticket" });
+                        }
                     }
-                    else
-                    {
-                        return Json(new { success = false, message = "Comment not found for the given ticket" });
-                    }
-                }
+                
                 else
                 {
                     return Json(new { success = false, message = "Ticket not found" });
@@ -510,17 +514,20 @@ namespace tracker.Controllers
                 .Include(u => u.CommentOfaTicket)
                 .FirstOrDefault(t => t.TableColumnsId == tId);
 
+                var loggedInUser = await _userManager.FindByNameAsync(User.Identity.Name);
+                var loggedInUserName = loggedInUser.Name;
+
                 if (ticketWithSpecificComment != null)
                 {
                     var specificComment = ticketWithSpecificComment.CommentOfaTicket.FirstOrDefault(c => c.Id == id);
 
-                    if (specificComment != null)
+                    if (specificComment != null && loggedInUserName == specificComment.Name)
                     {
                         _db.comment.Remove(specificComment);
 						await _db.SaveChangesAsync();
-
-					}
-					return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
+                        return Json(new { success = true, message = "Comment deleted successfully", ticketId = tId, cId = id });
+                    }
+                    return Json(new { success = false, message = "Not allowed to delete", ticketId = tId, cId = id });
                 }
                 else
                 {

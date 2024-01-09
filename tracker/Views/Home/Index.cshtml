@@ -70,7 +70,11 @@
 										<input asp-for="@item.TableColumnsId" hidden />
 										<td class="table-sizes" scope="row">@item.RowCount</td>
 										<td class="table-sizes">@item.TicketNumber</td>
-										<td class="table-sizes">@item.Description</td>
+											<td class="table-sizes">
+												<div class="truncate-text" data-toggle="tooltip" data-placement="top" title="@item.Description">
+													@Html.Raw(item.Description.Length > 30 ? $"{item.Description.Substring(0, 30)}" : item.Description)
+												</div>
+											</td>
 										<td class="table-sizes">@item.AssignedTo</td>
 										<td class="table-sizes">
 												<div>
@@ -90,19 +94,23 @@
 									
 										</td>
 										<td class="table-sizes">
-											<p>
+											
 												@if (item.Eta != null)
 												{
 													@foreach (var eta in item.Eta)
 													{
-														@eta
-														@if (item.Eta.IndexOf(eta) != item.Eta.Count - 1 && item.Eta!=null)
-														{
-															<span><i class="bi bi-calendar-x"></i>&nbsp &nbsp</span>
-														}
+														<p class="mb-0">
+															@eta
+
+															@if (item.Eta.IndexOf(eta) != item.Eta.Count - 1 && item.Eta != null)
+															{
+																<span class="ml-2"><i class="bi bi-calendar-x"></i></span>
+															}
+														</p>
 													}
+
 												}
-											</p>
+											
 										</td>
 
 
@@ -111,7 +119,7 @@
 											<a >
 												<i id="btn-changer-custom-@item.TableColumnsId" class="bi bi bi-chat-left btn-changer-custom" style="color:green; padding: 10px; display:inline" onclick="toggleDiv('@item.TableColumnsId')"></i>
 											</a>
-											<a  asp-controller="Home" asp-action="Edit" asp-route-id="@item.TableColumnsId">
+													<a  asp-controller="Home" asp-action="Edit" asp-route-id="@item.TableColumnsId">
 												<i class="bi bi-pencil"></i>
 											</a>
 												</div>
@@ -132,7 +140,7 @@
 											<div>
 												<!-- Plus icon that toggles the input field -->
 												<i class="bi bi-plus-lg" id="toggleIcon_@item.TableColumnsId" onclick="toggleInputField('@item.TableColumnsId')" style="cursor: pointer;">New comment</i><br>
-
+												<br />
 												<!-- Input field and Save button -->
 												<div id="commentInput_@item.TableColumnsId" style="display: none; margin-top: 10px;">
 													<div class="input-group">
@@ -451,6 +459,24 @@
 
 </script>
 
+@* <script>
+	document.addEventListener("DOMContentLoaded", function () {
+		var descriptions = document.querySelectorAll('.truncate-text');
+
+		descriptions.forEach(function (description) {
+			description.addEventListener('mouseover', function () {
+				this.style.whiteSpace = 'normal';
+				this.style.overflow = 'visible';
+			});
+
+			description.addEventListener('mouseout', function () {
+				this.style.whiteSpace = 'nowrap';
+				this.style.overflow = 'hidden';
+			});
+		});
+	});
+</script>
+ *@
 @* 
 <script>
 	function saveComment(id) {

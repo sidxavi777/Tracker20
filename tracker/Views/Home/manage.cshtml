@@ -4,14 +4,14 @@
     ViewData["Title"] = "User List";
 }
 
-<h1>User List</h1>
-
+<h3>Manage access</h3>
+<br />
 <form asp-controller="Home" asp-action="manage" method="post">
     <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
-                <th>Email</th>
+                <th>Name</th>
                 <th>Authorised</th>
                 <th>Admin</th>
             </tr>
@@ -21,10 +21,10 @@
             {
                 <tr>
                     <td>@(i + 1)</td>
-                    <td>@Model[i].Email</td>
+                    <td>@Model[i].Name</td>
                     <td>
                         <input type="hidden" name="selectedUsers[@i].Id" value="@Model[i].Id" />
-                        <input type="hidden" name="selectedUsers[@i].Email" value="@Model[i].Email" />
+                        <input type="hidden" name="selectedUsers[@i].Name" value="@Model[i].Name" />
                         <input type="checkbox" name="selectedUsers[@i].isAuthorized" value="true" @(Model[i].isAuthorized ? "checked" : "") />
                      
                     </td>
@@ -39,6 +39,6 @@
         </tbody>
     </table>
 
-    <button type="submit">Process Selected Users</button>
+    <button class="btn-dark" type="submit">Process Selected Users</button>
 </form>
 

@@ -114,11 +114,11 @@ namespace tracker.Areas.Identity.Pages.Account
         public async Task OnGetAsync(string returnUrl = null)
         {
             //creating roles
-            if(! _roleManager.RoleExistsAsync(SD.Member).GetAwaiter().GetResult())
-            {
-                _roleManager.CreateAsync(new IdentityRole(SD.Admin)).GetAwaiter().GetResult();
-				_roleManager.CreateAsync(new IdentityRole(SD.Member)).GetAwaiter().GetResult();
-			}
+   //         if(! _roleManager.RoleExistsAsync(SD.Member).GetAwaiter().GetResult())
+   //         {
+   //             _roleManager.CreateAsync(new IdentityRole(SD.Admin)).GetAwaiter().GetResult();
+			//	_roleManager.CreateAsync(new IdentityRole(SD.Member)).GetAwaiter().GetResult();
+			//}
 
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();

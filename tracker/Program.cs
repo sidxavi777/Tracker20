@@ -3,6 +3,7 @@ using System.Configuration;
 using Database;
 using Database.Data.IRepository;
 using Database.Data.Repository;
+using Database.DbInitilizer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -58,6 +59,7 @@ builder.Services.Configure<SMTP>(builder.Configuration.GetSection("SMTPConfig"))
 builder.Services.AddScoped<ITracker, Tracker>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<SMTP>(builder.Configuration.GetSection("SMTPConfig").Get<SMTP>());
+builder.Services.AddScoped<IDbInitilizer, DbInitilizer>();
 
 
 var app = builder.Build();
@@ -76,8 +78,18 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+seeder();
 app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run();
+
+void seeder()
+{
+    using(var scope=app.Services.CreateScope())
+    {
+        var dbinit = scope.ServiceProvider.GetRequiredService<IDbInitilizer>();
+        dbinit.Init();
+    }
+}
